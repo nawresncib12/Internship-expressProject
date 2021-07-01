@@ -2,7 +2,7 @@
 var UserModel = require('../model/UserModel');
 
 // create and save new user
-exports.create = (req, res) => {
+exports.addUser = (req, res) => {
     // check body
     if (!req.body) {
         res.status(400).send({ message: "Content can not be emtpy!" });

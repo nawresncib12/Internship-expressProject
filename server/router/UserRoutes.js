@@ -1,9 +1,9 @@
 const express = require('express');
-const route = express.Router()
+const userRoute = express.Router()
 const UserController = require('../controller/UserController');
 
 // Add User
-route.post('/api/users', UserController.create);
+userRoute.post('/api/subscribe', UserController.addUser);
 //Find user
-route.post('/api/login', UserController.findUser);
-module.exports = route
+userRoute.post('/api/login', UserController.findUser);
+module.exports = userRoute
