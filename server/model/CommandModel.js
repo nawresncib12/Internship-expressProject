@@ -1,12 +1,12 @@
 
 const mongoose = require('mongoose');
 
-var command = new mongoose.Schema({
+var commandSchema = new mongoose.Schema({
     username: {
         type: String,
     },
     products: {
-        type: [Number],
+        type: [String],
         default : []
     },
     total_price: Number,
@@ -17,5 +17,5 @@ var command = new mongoose.Schema({
     }
 })
 
-const commandmd = mongoose.model('command', command);
-exports=commandmd;
+const CommandModel = mongoose.model('CommandModel', commandSchema);
+exports=CommandModel;

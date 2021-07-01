@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-var product = new mongoose.Schema({
+var productSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true,
@@ -16,11 +16,14 @@ var product = new mongoose.Schema({
     price: Number,
     inventory: Number,
     users_ratings: [{
-        username: String,
+        userId: String,
         rating: Number
     }],
     average_rating: Number
 
 })
-const productmd = mongoose.model('product', product);
-exports=productmd;
+productSchema.pre('save', function () {
+    this.average_rating = this.users_ratings.reduce((a, b) => { return a + b.rating }, 0)
+});
+const ProductModel = mongoose.model('ProductModel', productSchema);
+exports = ProductModel;

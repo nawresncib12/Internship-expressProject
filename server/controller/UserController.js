@@ -1,5 +1,5 @@
 
-var Usermd = require('../model/Usermd');
+var UserModel = require('../model/UserModel');
 
 // create and save new user
 exports.create = (req,res)=>{
@@ -8,7 +8,7 @@ exports.create = (req,res)=>{
         res.status(400).send({ message : "Content can not be emtpy!"});
         return;
     }
-    const user = new Usermd({
+    const user = new UserModel({
         username : req.body.username,
         role : req.body.role,
         password: req.body.password

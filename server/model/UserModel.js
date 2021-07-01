@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-var user = new mongoose.Schema({
+var userSchema = new mongoose.Schema({
     username: {
         type: String,
         required: true,
@@ -16,9 +16,9 @@ var user = new mongoose.Schema({
         default: Date.now
     },
     commands :{
-        type: [Number],
+        type: [String],
         default : []
     }
 })
-const Usermd = mongoose.model('user', user);
-exports=Usermd;
+const UserModel = mongoose.model('UserModel', userSchema);
+exports=UserModel;
