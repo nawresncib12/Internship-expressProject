@@ -2,7 +2,7 @@
 const mongoose = require('mongoose');
 
 var commandSchema = new mongoose.Schema({
-    username: {
+    userId: {
         type: String,
     },
     products: {

@@ -12,8 +12,7 @@ var productSchema = new mongoose.Schema({
         default: Date.now
     },
     category: String,
-    unit: String,
-    price: Number,
+    unit_price: Number,
     inventory: Number,
     users_ratings: [{
         userId: String,

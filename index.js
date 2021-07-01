@@ -19,5 +19,5 @@ app.use(express.urlencoded({
 }));
 
 
-app.use('/', require('./server/router/routes'))
+app.use('/', require('./server/router/UserRoutes'))
 app.listen(PORT, () => { console.log(`http://localhost:${PORT}`) });
