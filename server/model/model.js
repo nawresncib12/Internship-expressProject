@@ -17,7 +17,7 @@ var user = new mongoose.Schema({
         default: Date.now
     }
 })
-const Usermd = mongoose.model('usermd', user);
+const Usermd = mongoose.model('user', user);
 exports.Usermd=Usermd;
 
 var product = new mongoose.Schema({
@@ -39,17 +39,17 @@ var product = new mongoose.Schema({
         username: String,
         rating: Number
     }],
-    average_rating: Numbers
+    average_rating: Number
 
 })
-const productmd = mongoose.model('productmd', product);
+const productmd = mongoose.model('product', product);
 exports.productmd=productmd;
 
 var command = new mongoose.Schema({
     username: {
         type: String,
     },
-    products: [productId],
+    products: [Number],
     total_price: Number,
     status: String,
     createdAt: {
@@ -58,5 +58,5 @@ var command = new mongoose.Schema({
     }
 })
 
-const commandmd = mongoose.model('commandmd', command);
+const commandmd = mongoose.model('command', command);
 exports.commandmd=commandmd;
