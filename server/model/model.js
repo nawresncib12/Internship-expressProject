@@ -15,6 +15,10 @@ var user = new mongoose.Schema({
     createdAt: {
         type: Date,
         default: Date.now
+    },
+    commands :{
+        type: [Number],
+        default : []
     }
 })
 const Usermd = mongoose.model('user', user);
@@ -49,7 +53,10 @@ var command = new mongoose.Schema({
     username: {
         type: String,
     },
-    products: [Number],
+    products: {
+        type: [Number],
+        default : []
+    },
     total_price: Number,
     status: String,
     createdAt: {
