@@ -1,23 +1,30 @@
 
 var UserModel = require('../model/UserModel');
+const _ = require('lodash');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const config = require('config');
 
 // create and save new user
-exports.addUser = (req, res) => {
+exports.addUser = async (req, res) => {
     // check body
     if (!req.body) {
         res.status(400).send({ message: "Content can not be emtpy!" });
         return;
     }
-    const user = new UserModel({
-        username: req.body.username,
-        role: req.body.role,
-        password: req.body.password
-    })
+    const user = new UserModel(
+        _.pick(req.body, ['username', 'role', 'password'])
+    );
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(user.password, salt);
+
 
     // save user in the database
     user
         .save(user)
-        .then(result => res.send(result))
+        .then(result => res.send(
+            _.pick(user, ['_id', 'username', 'role'])
+        ))
         .catch(err => {
             res.status(500).send({
                 message: err.message || "creation error"
@@ -27,14 +34,24 @@ exports.addUser = (req, res) => {
 }
 //Find user
 exports.findUser = (req, res) => {
-    UserModel.findOne({ username: req.body.username, password: req.body.password },
-        { explicit: true }).then(function (user) {
-            // do something with user
-            if (user===null){
-                res.status(400).send("No match found");
+    UserModel.findOne({ username: req.body.username },
+        { explicit: true })
+        .select("_id username password role")
+        .then(async function (user) {
+            if (user === null) {
+                res.status(400).send("Invalid email or password");
                 return;
             }
-            res.status(200).send(`You are logged in \n ${user}`)}).catch (function(err) {
-                res.send({ error: err })
-            })
+            const validPassword = await bcrypt.compare(req.body.password, user.password);
+            if (!validPassword) {
+                res.status(400).send("Invalid email or password");
+                return;
+            }
+            const token = jwt.sign({ _id: user._id }, config.get('jwtPrivateKey'));
+            res.send(token);
+
+        })
+        .catch(function (err) {
+            res.send({ error: err.message })
+        })
 }

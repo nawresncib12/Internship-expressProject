@@ -31,42 +31,80 @@ exports.createProduct = (req, res) => {
 
 // Update a product 
 
-exports.updateProduct = (req, res)=>{
-    if(!req.body){
+exports.updateProduct = (req, res) => {
+    if (!req.body) {
         return res
             .status(400)
-            .send({ message : "Data to update can not be empty"})
+            .send({ message: "Data to update can not be empty" })
     }
 
     const productId = req.params.productId;
-    ProductModel.findByIdAndUpdate(productId, req.body,{ new: true })
+    ProductModel.findByIdAndUpdate(productId, req.body, { new: true })
         .then(data => {
-            if(!data){
+            if (!data) {
                 console.log(productId);
-                res.status(404).send({ message : `Cannot Update product`})
-            }else{
+                res.status(404).send({ message: `Cannot Update product` })
+            } else {
                 res.send(data)
             }
         })
-        .catch(err =>{
-            res.status(500).send({ message : "Error Updating product information"})
+        .catch(err => {
+            res.status(500).send({ mesesage: "Error Updating product information" })
         })
 }
 
 // Delete a product
 
-exports.deletProduct = (req, res)=>{
+exports.deletProduct = (req, res) => {
     const productId = req.params.productId;
-    ProductModel.findByIdAndUpdate(productId,{is_deleted:true},{ new: true })
+    ProductModel.findByIdAndUpdate(productId, { is_deleted: true }, { new: true })
         .then(data => {
-            if(!data){
+            if (!data) {
                 console.log(productId);
-                res.status(404).send({ message : `Cannot Delete product`})
-            }else{
+                res.status(404).send({ message: `Cannot Delete product` })
+            } else {
                 res.send(`The product is deleted \n ${data}`)
             }
         })
-        .catch(err =>{
-            res.status(500).send({ message : "Error Deleting product"})
+        .catch(err => {
+            res.status(500).send({ message: "Error Deleting product" })
+        })
+}
+//list products 
+exports.listProducts = (req, res) => {
+    filters = {};
+    for (var key in req.body) {
+        if (key == "sort") {
+            sort = req.body.sort;
+        }
+        else {
+            filters[key] = req.body[key];
+        }
+    }
+    if (sort) {
+        if (sort == "Latest") {
+            sort = { createdAt: -1 }
+        } else if (sort == "Cheapest") {
+            sort = { unit_price: 1 }
+        } else if (sort == "Most expensive") {
+            sort = { unit_price: -1 }
+        } else if (sort == "Best rated") {
+            sort = { average_rating: -1 }
+        }
+
+    } else {
+        sort = { createdAt: 1 }
+    }
+    console.log(filters);
+    ProductModel.find(filters).sort(sort)
+        .then(data => {
+            if (!data) {
+                res.status(404).send({ message: `no products found` })
+            } else {
+                res.send(`Here is your list \n ${data}`)
+            }
+        })
+        .catch(err => {
+            res.status(500).send({ message: "Error listing products" })
         })
 }
