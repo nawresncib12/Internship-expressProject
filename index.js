@@ -6,6 +6,7 @@ const path = require('path');
 const connectDB = require('./server/database/connection');
 const app = express();
 
+dotenv.config({ path: 'config.env' })
 if(!config.get('jwtPrivateKey')){
   console.error('FATAL ERROR : jwtPrivateKey is not defined.')
   process.exit(1);
@@ -13,7 +14,6 @@ if(!config.get('jwtPrivateKey')){
 
 app.use(helmet());
 
-dotenv.config({ path: 'config.env' })
 const PORT = process.env.PORT || 8080
 
 connectDB();

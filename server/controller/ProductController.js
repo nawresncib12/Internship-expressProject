@@ -1,5 +1,6 @@
 
-var ProductModel = require('../model/ProductModel');
+const { ProductModel } = require('../model/ProductModel');
+const { UserModel } = require('../model/UserModel');
 
 // create and save new product
 exports.createProduct = (req, res) => {
@@ -13,8 +14,8 @@ exports.createProduct = (req, res) => {
         description: req.body.description,
         category: req.body.category,
         unit_price: req.body.unit_price,
-        inventory: req.body.inventory
-
+        inventory: req.body.inventory,
+        users_ratings: []
     })
 
     // save product in the database
@@ -42,7 +43,6 @@ exports.updateProduct = (req, res) => {
     ProductModel.findByIdAndUpdate(productId, req.body, { new: true })
         .then(data => {
             if (!data) {
-                console.log(productId);
                 res.status(404).send({ message: `Cannot Update product` })
             } else {
                 res.send(data)
@@ -60,7 +60,6 @@ exports.deletProduct = (req, res) => {
     ProductModel.findByIdAndUpdate(productId, { is_deleted: true }, { new: true })
         .then(data => {
             if (!data) {
-                console.log(productId);
                 res.status(404).send({ message: `Cannot Delete product` })
             } else {
                 res.send(`The product is deleted \n ${data}`)
@@ -72,7 +71,7 @@ exports.deletProduct = (req, res) => {
 }
 //list products 
 exports.listProducts = (req, res) => {
-    filters = {};
+    filters = { is_deleted: false };
     for (var key in req.body) {
         if (key == "sort") {
             sort = req.body.sort;
@@ -81,7 +80,7 @@ exports.listProducts = (req, res) => {
             filters[key] = req.body[key];
         }
     }
-    if (sort) {
+    if (sort) {//switch
         if (sort == "Latest") {
             sort = { createdAt: -1 }
         } else if (sort == "Cheapest") {
@@ -95,7 +94,6 @@ exports.listProducts = (req, res) => {
     } else {
         sort = { createdAt: 1 }
     }
-    console.log(filters);
     ProductModel.find(filters).sort(sort)
         .then(data => {
             if (!data) {
@@ -107,4 +105,28 @@ exports.listProducts = (req, res) => {
         .catch(err => {
             res.status(500).send({ message: "Error listing products" })
         })
+}
+//rate Product
+
+exports.rateProduct = async (req, res) => {
+    const productId = req.params.productId;
+    try {
+        const product = await ProductModel.findById(productId);
+        if (product) {
+            const user = await UserModel.findById(req.user._id);
+            if (!user) {
+                res.status(400).send('Invalid user.');
+                return;
+            }
+            const rating = req.body.rating;
+            product.users_ratings.push({ user, rating });
+            product.save();
+
+            res.status(200).send({ product })
+        } else {
+            res.status(500).send({ message: "Error finding product" })
+        }
+    } catch (err) {
+        res.status(500).send({ message: "Error Rating product" })
+    }
 }

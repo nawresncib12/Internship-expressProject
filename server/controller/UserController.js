@@ -1,9 +1,7 @@
 
-var UserModel = require('../model/UserModel');
+var { UserModel } = require('../model/UserModel');
 const _ = require('lodash');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const config = require('config');
 
 // create and save new user
 exports.addUser = async (req, res) => {
@@ -20,16 +18,19 @@ exports.addUser = async (req, res) => {
 
 
     // save user in the database
-    user
-        .save(user)
-        .then(result => res.send(
+    try {
+        await user.save();
+        const token = user.generetaAuthToken();
+        res.header('x-auth-token', token).send(
             _.pick(user, ['_id', 'username', 'role'])
-        ))
-        .catch(err => {
-            res.status(500).send({
-                message: err.message || "creation error"
-            });
+        )
+    }
+    catch (err) {
+        res.status(500).send({
+            message: err.message || "creation error"
         });
+    }
+
 
 }
 //Find user
@@ -47,11 +48,16 @@ exports.findUser = (req, res) => {
                 res.status(400).send("Invalid email or password");
                 return;
             }
-            const token = jwt.sign({ _id: user._id }, config.get('jwtPrivateKey'));
+            const token = user.generetaAuthToken();
             res.send(token);
 
         })
         .catch(function (err) {
             res.send({ error: err.message })
         })
+}
+exports.currentUser = async (req, res) => {
+    const user = await UserModel.findById(req.user._id)
+        .select("-password");
+    res.send(user);
 }

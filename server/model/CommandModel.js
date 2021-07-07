@@ -1,14 +1,13 @@
+const { productSchema } = require('./ProductModel');
 
 const mongoose = require('mongoose');
 
 var commandSchema = new mongoose.Schema({
     userId: {
-        type: String,
+        type: mongoose.Schema.Types.ObjectId,
+        ref:"UserModel"
     },
-    products: {
-        type: [String],
-        default : []
-    },
+    products: [{product:productSchema,quantity:Number}],
     total_price: Number,
     status: String,
     createdAt: {
@@ -16,6 +15,8 @@ var commandSchema = new mongoose.Schema({
         default: Date.now
     }
 })
-
+commandSchema.pre('save', function () {
+    this.total_price = this.products.reduce((a, b) => { return a + (b.quantity*b.product.unit_price)}, 0)
+});
 const CommandModel = mongoose.model('CommandModel', commandSchema);
-exports=CommandModel;
+module.exports = CommandModel;

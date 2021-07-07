@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
-
+const jwt = require('jsonwebtoken');
+const config = require('config');
 var userSchema = new mongoose.Schema({
     username: {
         type: String,
@@ -14,11 +15,12 @@ var userSchema = new mongoose.Schema({
     createdAt: {
         type: Date,
         default: Date.now
-    },
-    commands :{
-        type: [String],
-        default : []
     }
 })
+userSchema.methods.generetaAuthToken = function () {
+    const token = jwt.sign({ _id: this._id, role: this.role }, config.get('jwtPrivateKey'));
+    return token;
+}
 const UserModel = mongoose.model('UserModel', userSchema);
-module.exports=UserModel;
+module.exports.UserModel = UserModel;
+module.exports.userSchema = userSchema;
