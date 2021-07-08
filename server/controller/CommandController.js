@@ -195,3 +195,18 @@ exports.confirmCommand = async (req, res) => {
         res.status(500).send(err.message)
     }
 }
+exports.getAllCommands = async (req, res) => {
+    try {
+            var commands = await CommandModel.find({status: { $ne: "Loading" } });
+            if (commands.length==0) {
+                return res.status(500).send({ message: "No commands to show" })
+            } else {
+                return res.send(commands)
+            }
+
+        
+    }
+    catch (err) {
+        res.status(500).send(err.message)
+    }
+}

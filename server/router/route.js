@@ -44,4 +44,7 @@ route.post('/api/commands/getCommands', auth, CommandController.getCommands);
 
 //confirmCommand 
 route.post('/api/commands/confirmCommand',[auth,admin], CommandController.confirmCommand);
+
+//getAllCommands 
+route.post('/api/commands/getAllCommands',[auth,admin], CommandController.getAllCommands);
 module.exports = route
