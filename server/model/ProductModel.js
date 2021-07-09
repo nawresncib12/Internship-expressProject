@@ -24,7 +24,6 @@ var productSchema = new mongoose.Schema({
 })
 var sum_rating = 0;
 productSchema.pre('save', function () {
-    console.log('hi');
     sum_rating = this.users_ratings.reduce((a, b) => { return a + b.rating }, 0);
     this.average_rating = sum_rating * 1.0 / this.users_ratings.length;
 });
