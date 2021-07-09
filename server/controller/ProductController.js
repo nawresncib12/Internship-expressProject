@@ -103,7 +103,7 @@ exports.listProducts = (req, res) => {
             }
         })
         .catch(err => {
-            res.status(500).send({ message: "Error listing products" })
+            res.status(500).send({ message: err.mesesage })
         })
 }
 //rate Product
@@ -111,22 +111,29 @@ exports.listProducts = (req, res) => {
 exports.rateProduct = async (req, res) => {
     const productId = req.params.productId;
     try {
-        const product = await ProductModel.findById(productId);
+        var product = await ProductModel.findById(productId);
         if (product) {
             const user = await UserModel.findById(req.user._id);
             if (!user) {
                 res.status(400).send('Invalid user.');
                 return;
             }
+            const updated = await ProductModel.updateOne({ _id: req.params.productId, "users_ratings.user._id": req.user._id },
+                { "users_ratings.$.rating": req.body.rating }, { returnOriginal: false });
             const rating = req.body.rating;
-            product.users_ratings.push({ user, rating });
-            product.save();
-
+            if ((!updated.nModified) && (updated.n == 0)) {
+                product.users_ratings.push({ user, rating });
+            } else {
+                product.save();
+                product = await ProductModel.findById(productId);
+                product.save();
+            
+            }
             res.status(200).send({ product })
         } else {
             res.status(500).send({ message: "Error finding product" })
         }
     } catch (err) {
-        res.status(500).send({ message: "Error Rating product" })
+        res.status(500).send({ message: err.mesesage })
     }
 }

@@ -13,16 +13,17 @@ var productSchema = new mongoose.Schema({
     category: String,
     unit_price: Number,
     inventory: Number,
-    users_ratings: [{user:userSchema,rating:Number}],
+    users_ratings: [{ user: userSchema, rating: Number }],
     average_rating: Number,
     is_deleted: {
         type: Boolean,
         default: false
     },
 })
+var sum_rating = 0;
 productSchema.pre('save', function () {
-    this.average_rating = this.users_ratings.reduce((a, b) => { return a + b.rating }, 0)
-//just adding here !!!
+    sum_rating = this.users_ratings.reduce((a, b) => { return a + b.rating }, 0);
+    this.average_rating = sum_rating * 1.0 / this.users_ratings.length;
 });
 const ProductModel = mongoose.model('ProductModel', productSchema);
 module.exports.ProductModel = ProductModel;
