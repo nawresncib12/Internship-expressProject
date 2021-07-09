@@ -113,23 +113,24 @@ exports.rateProduct = async (req, res) => {
     try {
         var product = await ProductModel.findById(productId);
         if (product) {
-            const user = await UserModel.findById(req.user._id);
-            if (!user) {
-                res.status(400).send('Invalid user.');
-                return;
-            }
-            const updated = await ProductModel.updateOne({ _id: req.params.productId, "users_ratings.user._id": req.user._id },
+            /* await ProductModel.findOneAndUpdate({ _id: productId, "users_ratings.user": req.user._id }, {
+                 $set: { "users_ratings.$.rating": req.body.rating }}
+                 , (err, doc) => {
+                 console.log(doc);
+                 res.status(200).send({ doc })
+             });
+             /*  */
+            const updated = await ProductModel.updateOne({ _id: req.params.productId, "users_ratings.user": req.user._id },
                 { "users_ratings.$.rating": req.body.rating }, { returnOriginal: false });
             const rating = req.body.rating;
             if ((!updated.nModified) && (updated.n == 0)) {
                 product.users_ratings.push({ user, rating });
             } else {
+                var product = await ProductModel.findById(productId);
                 product.save();
-                product = await ProductModel.findById(productId);
-                product.save();
-            
             }
             res.status(200).send({ product })
+
         } else {
             res.status(500).send({ message: "Error finding product" })
         }

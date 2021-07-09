@@ -7,7 +7,7 @@ var commandSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref:"UserModel"
     },
-    products: [{product:productSchema,quantity:Number}],
+    products: [{product:String,quantity:Number}],
     total_price: Number,
     status: String,
     createdAt: {

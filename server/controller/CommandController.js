@@ -22,7 +22,7 @@ exports.addProduct = async (req, res) => {
                     })
                 }
                 command.save();
-                const updated = await CommandModel.updateOne({ userId: req.body.userId, status: "Loading", "products.product._id": req.body.productId },
+                const updated = await CommandModel.updateOne({ userId: req.body.userId, status: "Loading", "products.product": req.body.productId },
                     { $inc: { "products.$.quantity": 1 } }, {
                     returnOriginal: false
                 });
@@ -62,7 +62,7 @@ exports.removeProduct = async (req, res) => {
                     res.status(500).send({ message: "Error finding command" })
                 }
                 //check if product already exits in product
-                const updated = await CommandModel.updateOne({ userId: req.body.userId, status: "Loading", "products.product._id": req.body.productId },
+                const updated = await CommandModel.updateOne({ userId: req.body.userId, status: "Loading", "products.product": req.body.productId },
                     { $inc: { "products.$.quantity": -1 } }, {
                     returnOriginal: false
                 });

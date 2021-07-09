@@ -13,7 +13,7 @@ var productSchema = new mongoose.Schema({
     category: String,
     unit_price: Number,
     inventory: Number,
-    users_ratings: [{ user: userSchema, rating: Number }],
+    users_ratings: [{ user: String, rating: Number }], 
     average_rating: Number,
     is_deleted: {
         type: Boolean,
