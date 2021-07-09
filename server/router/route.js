@@ -14,7 +14,7 @@ route.post('/api/login', UserController.findUser);
 route.get('/api/me', auth, UserController.currentUser);
 
 // Add Product
-route.post('/api/addProduct', [auth, admin], ProductController.createProduct);
+route.post('/api/addProduct',  ProductController.createProduct);
 //Update Product
 route.post('/api/updateProduct/:productId', [auth, admin], ProductController.updateProduct);
 //Delete Product

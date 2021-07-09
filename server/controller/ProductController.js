@@ -110,6 +110,8 @@ exports.listProducts = (req, res) => {
 
 exports.rateProduct = async (req, res) => {
     const productId = req.params.productId;
+    const userId=req.user._id;
+    console.log(userId);
     try {
         var product = await ProductModel.findById(productId);
         if (product) {
@@ -118,18 +120,20 @@ exports.rateProduct = async (req, res) => {
                  , (err, doc) => {
                  console.log(doc);
                  res.status(200).send({ doc })
-             });
-             /*  */
-            const updated = await ProductModel.updateOne({ _id: req.params.productId, "users_ratings.user": req.user._id },
+             });*/
+            const updated = await ProductModel.updateOne({ _id: req.params.productId, "users_ratings.userId": userId },
                 { "users_ratings.$.rating": req.body.rating }, { returnOriginal: false });
             const rating = req.body.rating;
+            console.log(updated)
             if ((!updated.nModified) && (updated.n == 0)) {
-                product.users_ratings.push({ user, rating });
+                product.users_ratings.push({ userId, rating });
+                product.save();
             } else {
-                var product = await ProductModel.findById(productId);
+                product = await ProductModel.findById(productId);
                 product.save();
             }
             res.status(200).send({ product })
+            //Problem:showing old even tho cluster is  updated
 
         } else {
             res.status(500).send({ message: "Error finding product" })
