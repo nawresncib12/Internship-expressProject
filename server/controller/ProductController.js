@@ -1,4 +1,3 @@
-
 const { ProductModel } = require('../model/ProductModel');
 const { UserModel } = require('../model/UserModel');
 
@@ -56,89 +55,124 @@ exports.updateProduct = (req, res) => {
 // Delete a product
 
 exports.deletProduct = (req, res) => {
-    const productId = req.params.productId;
-    ProductModel.findByIdAndUpdate(productId, { is_deleted: true }, { new: true })
-        .then(data => {
-            if (!data) {
-                res.status(404).send({ message: `Cannot Delete product` })
-            } else {
-                res.send(`The product is deleted \n ${data}`)
-            }
-        })
-        .catch(err => {
-            res.status(500).send({ message: "Error Deleting product" })
-        })
-}
-//list products 
-exports.listProducts = (req, res) => {
+        const productId = req.params.productId;
+        ProductModel.findByIdAndUpdate(productId, { is_deleted: true }, { new: true })
+            .then(data => {
+                if (!data) {
+                    res.status(404).send({ message: `Cannot Delete product` })
+                } else {
+                    res.send(`The product is deleted \n ${data}`)
+                }
+            })
+            .catch(err => {
+                res.status(500).send({ message: "Error Deleting product" })
+            })
+    }
+    //list products 
+exports.listProducts = async(req, res) => {
+    var minPrice, maxPrice;
     filters = { is_deleted: false };
     for (var key in req.body) {
-        if (key == "sort") {
-            sort = req.body.sort;
-        }
-        else {
-            filters[key] = req.body[key];
-        }
-    }
-    if (sort) {//switch
-        if (sort == "Latest") {
-            sort = { createdAt: -1 }
-        } else if (sort == "Cheapest") {
-            sort = { unit_price: 1 }
-        } else if (sort == "Most expensive") {
-            sort = { unit_price: -1 }
-        } else if (sort == "Best rated") {
-            sort = { average_rating: -1 }
+        switch (key) {
+            case "sort":
+                sort = req.body.sort;
+                break;
+            case "minPrice":
+                minPrice = req.body[key];
+                break;
+            case "maxPrice":
+                maxPrice = req.body[key];
+                break;
+            case "category":
+            case "in-stock":
+            case "name":
+                filters[key] = req.body[key];
+                break;
+            default:
+                res.status(404).send({ message: `unaccepted filter` })
         }
 
-    } else {
-        sort = { createdAt: 1 }
     }
-    ProductModel.find(filters).sort(sort)
-        .then(data => {
-            if (!data) {
-                res.status(404).send({ message: `no products found` })
-            } else {
-                res.send(`Here is your list \n ${data}`)
-            }
-        })
-        .catch(err => {
-            res.status(500).send({ message: err.mesesage })
-        })
+
+    if (minPrice && maxPrice) {
+        filters['unit_price'] = { $gt: minPrice, $lt: maxPrice };
+    } else if (minPrice) {
+        console.log("heere")
+        filters['unit_price'] = { $gt: minPrice };
+    } else if (maxPrice) {
+        filters['unit_price'] = { $lt: maxPrice };
+    }
+
+    switch (sort) {
+        case "Latest":
+            sort = { createdAt: -1 }
+            break;
+        case "Cheapest":
+            sort = { unit_price: 1 }
+            break;
+        case "Most expensive":
+            sort = { unit_price: -1 }
+            break;
+        case "Best rated":
+            sort = { average_rating: -1 }
+            break;
+        default:
+            sort = { createdAt: -1 }
+    }
+}
+
+try {
+    const products = await ProductModel.find(filters).sort(sort);
+    if (!products.length) {
+        res.status(404).send({ message: `no products found` })
+    } else {
+        res.send(`Here is your list \n ${products}`)
+    }
+} catch (err) {
+    return res.status(500).send({ message: err.mesesage })
+}
 }
 //rate Product
-
-exports.rateProduct = async (req, res) => {
+exports.rateProduct = async(req, res) => {
     const productId = req.params.productId;
-    const userId=req.user._id;
-    console.log(userId);
+    const userId = req.user._id;
+    const rating = req.body.rating;
+    const comment = req.body.comment;
+    if ((!rating) && (!comment)) {
+        return res.status(400).send({ errorMessage: "You must give a rating or a comment" })
+    }
+
     try {
         var product = await ProductModel.findById(productId);
         if (product) {
-            /* await ProductModel.findOneAndUpdate({ _id: productId, "users_ratings.user": req.user._id }, {
-                 $set: { "users_ratings.$.rating": req.body.rating }}
-                 , (err, doc) => {
-                 console.log(doc);
-                 res.status(200).send({ doc })
-             });*/
-            const updated = await ProductModel.updateOne({ _id: req.params.productId, "users_ratings.userId": userId },
-                { "users_ratings.$.rating": req.body.rating }, { returnOriginal: false });
-            const rating = req.body.rating;
-            console.log(updated)
-            if ((!updated.nModified) && (updated.n == 0)) {
-                product.users_ratings.push({ userId, rating });
-                product.save();
-            } else {
+            const exists = await ProductModel.findOne({ _id: productId, "users_ratings.userId": userId });
+            if (exists) {
+                if (rating) {
+                    await ProductModel.updateOne({ _id: productId, "users_ratings.userId": userId }, { "users_ratings.$.rating": rating }, { returnOriginal: false });
+                }
+                if (comment) {
+                    await ProductModel.updateOne({ _id: productId, "users_ratings.userId": userId }, { "users_ratings.$.comment": comment }, { returnOriginal: false });
+                }
                 product = await ProductModel.findById(productId);
                 product.save();
+
+            } else {
+                if (rating && comment) {
+                    product.users_ratings.push({ userId, rating, comment });
+                } else if (comment) {
+                    return res.status(400).send({ errorMessage: "You must give a rating" })
+                } else {
+                    product.users_ratings.push({ userId, rating });
+                }
+                product.save();
             }
-            res.status(200).send({ product })
-            //Problem:showing old even tho cluster is  updated
+
+            res.status(200).send({ successMessage: "Rating submitted successfully" })
 
         } else {
-            res.status(500).send({ message: "Error finding product" })
+            res.status(500).send({ errorMessage: "Error finding product" })
         }
     } catch (err) {
-        res.status(500).send({ message: err.mesesage })
+        res.status(500).send({ errorMessage: err.mesesage })
     }
 }

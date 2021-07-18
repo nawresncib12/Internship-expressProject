@@ -12,7 +12,7 @@ var productSchema = new mongoose.Schema({
     category: String,
     unit_price: Number,
     inventory: Number,
-    users_ratings: [{ userId: String, rating: Number }],
+    users_ratings: [{ userId: String, rating: Number, comment: String }],
     average_rating: {
         type: Number,
         default: 0
@@ -23,7 +23,7 @@ var productSchema = new mongoose.Schema({
     },
 })
 var sum_rating = 0;
-productSchema.pre('save', function () {
+productSchema.pre('save', function() {
     sum_rating = this.users_ratings.reduce((a, b) => { return a + b.rating }, 0);
     this.average_rating = sum_rating * 1.0 / this.users_ratings.length;
 });
