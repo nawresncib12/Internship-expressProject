@@ -15,12 +15,22 @@ route.get('/api/me', auth, UserController.currentUser);
 
 // Add Product
 route.post('/api/addProduct', [auth, admin], ProductController.createProduct);
+
 //Update Product
 route.post('/api/updateProduct/:productId', [auth, admin], ProductController.updateProduct);
+
 //Delete Product
 route.delete('/api/deleteProduct/:productId', [auth, admin], ProductController.deletProduct);
+
 //listProducts
 route.post('/api/products', auth, ProductController.listProducts);
+
+//listCategories
+route.post('/api/listCategories', auth, ProductController.listCategories);
+
+//getPriceRange
+route.post('/api/getPriceRange', auth, ProductController.getPriceRange);
+
 //rateProduct
 route.post('/api/rateProduct/:productId', auth, ProductController.rateProduct);
 

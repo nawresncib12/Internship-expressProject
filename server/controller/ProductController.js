@@ -127,8 +127,34 @@ exports.listProducts = async(req, res) => {
             if (!products.length) {
                 res.status(404).send({ message: `no products found` })
             } else {
-                res.send(`Here is your list \n ${products}`)
+                res.send(products)
             }
+        } catch (err) {
+            return res.status(500).send({ message: err.mesesage })
+        }
+    }
+    //list categories
+exports.listCategories = async(req, res) => {
+    try {
+        const categories = await ProductModel.find().select('category').select('-_id').distinct('category');
+        res.send(categories)
+    } catch (err) {
+        return res.status(500).send({ message: err.mesesage })
+    }
+}
+exports.getPriceRange = async(req, res) => {
+        try {
+            const minPrice = await ProductModel.find()
+                .select("unit_price")
+                .select('-_id')
+                .sort({ "unit_price": -1 })
+                .limit(1);
+            const maxPrice = await ProductModel.find()
+                .select("unit_price")
+                .select('-_id')
+                .sort({ "unit_price": 1 })
+                .limit(1);
+            res.send({ minPrice: minPrice[0]["unit_price"], maxPrice: maxPrice[0]["unit_price"] })
         } catch (err) {
             return res.status(500).send({ message: err.mesesage })
         }
