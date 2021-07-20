@@ -1,3 +1,4 @@
+const { update } = require('lodash');
 const { ProductModel } = require('../model/ProductModel');
 const { UserModel } = require('../model/UserModel');
 
@@ -13,6 +14,7 @@ exports.createProduct = (req, res) => {
         description: req.body.description,
         category: req.body.category,
         unit_price: req.body.unit_price,
+        original_unit_price: req.body.unit_price,
         inventory: req.body.inventory,
         users_ratings: []
     })
@@ -170,6 +172,91 @@ exports.rateProduct = async(req, res) => {
 
         } else {
             res.status(500).send({ errorMessage: "Error finding product" })
+        }
+    } catch (err) {
+        res.status(500).send({ errorMessage: err.mesesage })
+    }
+}
+exports.addDiscount = async(req, res) => {
+    var productId, category /*, expire = 0*/ ;
+    if (req.body.productId) {
+        productId = req.body.productId;
+    }
+    if (req.body.category) {
+        category = req.body.category;
+    } else if (!productId) {
+        return res.status(400).send({
+            errorMessage: "You must give a product or a category"
+        });
+    }
+    /*if (req.body.expire) {
+        expire = req.body.expire;
+    }*/
+    const discount = req.body.discount;
+    if ((!discount)) {
+        return res.status(400).send({ errorMessage: "You must give a discount" })
+    }
+    try {
+        if (productId) {
+            var product = await ProductModel.findById(productId);
+            if (product) {
+                const updated = await ProductModel.updateOne({ _id: productId }, { discount: discount /*, "discount.expire": expire */ });
+                product = await ProductModel.findById(productId);
+                product.save();
+                res.status(200).send({ successMessage: "Discount added successfully" });
+            } else {
+                res.status(500).send({ errorMessage: "Error finding product" });
+            }
+        } else {
+            var products = await ProductModel.find({ category: category });
+            if (products.length == 0) {
+                return res.status(500).send({ errorMessage: "no products in such category" });
+            }
+            products.forEach(product => {
+                product.set({ discount: discount, /*"discount.expire": expire */ });
+                product.save();
+            });
+
+            res.status(200).send({ successMessage: `Discount added successfully to the ${category} category` })
+        }
+    } catch (err) {
+        res.status(500).send({ errorMessage: err.mesesage })
+    }
+}
+exports.removeDiscount = async(req, res) => {
+    var productId, category;
+    if (req.body.productId) {
+        productId = req.body.productId;
+    }
+    if (req.body.category) {
+        category = req.body.category;
+    } else if (!productId) {
+        return res.status(400).send({
+            errorMessage: "You must give a product or a category"
+        });
+    }
+    try {
+        if (productId) {
+            var product = await ProductModel.findById(productId);
+            if (product) {
+                const updated = await ProductModel.updateOne({ _id: productId }, { discount: 0 });
+                product = await ProductModel.findById(productId);
+                product.save();
+                res.status(200).send({ successMessage: "Discount removed successfully" });
+            } else {
+                res.status(500).send({ errorMessage: "Error finding product" });
+            }
+        } else {
+            var products = await ProductModel.find({ category: category });
+            if (products.length == 0) {
+                return res.status(500).send({ errorMessage: "no products in such category" });
+            }
+            products.forEach(product => {
+                product.set({ discount: 0 });
+                product.save();
+            });
+
+            res.status(200).send({ successMessage: `Discount removed successfully from the ${category} category` })
         }
     } catch (err) {
         res.status(500).send({ errorMessage: err.mesesage })

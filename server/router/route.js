@@ -20,7 +20,7 @@ route.post('/api/updateProduct/:productId', [auth, admin], ProductController.upd
 //Delete Product
 route.delete('/api/deleteProduct/:productId', [auth, admin], ProductController.deletProduct);
 //listProducts
-route.post('/api/products',auth, ProductController.listProducts);
+route.post('/api/products', auth, ProductController.listProducts);
 //rateProduct
 route.post('/api/rateProduct/:productId', auth, ProductController.rateProduct);
 
@@ -43,8 +43,14 @@ route.post('/api/commands/submitCommand', auth, CommandController.submitCommand)
 route.post('/api/commands/getCommands', auth, CommandController.getCommands);
 
 //confirmCommand 
-route.post('/api/commands/confirmCommand',[auth,admin], CommandController.confirmCommand);
+route.post('/api/commands/confirmCommand', [auth, admin], CommandController.confirmCommand);
 
 //getAllCommands 
-route.post('/api/commands/getAllCommands',[auth,admin], CommandController.getAllCommands);
+route.post('/api/commands/getAllCommands', [auth, admin], CommandController.getAllCommands);
+
+//add Discount 
+route.post('/api/addDiscount', [auth, admin], ProductController.addDiscount);
+
+//remove Discount 
+route.post('/api/addDiscount', [auth, admin], ProductController.removeDiscount);
 module.exports = route
