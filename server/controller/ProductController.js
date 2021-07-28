@@ -1,4 +1,3 @@
-const { update } = require('lodash');
 const { ProductModel } = require('../model/ProductModel');
 const { UserModel } = require('../model/UserModel');
 
@@ -133,15 +132,25 @@ exports.listProducts = async(req, res) => {
             return res.status(500).send({ message: err.mesesage })
         }
     }
+    //Latest 3  products :
+exports.latest = async(req, res) => {
+        try {
+            const products = await ProductModel.find({ is_deleted: false }).limit(3).sort({ createdAt: -1 });
+            return res.status(500).send(products);
+        } catch (err) {
+            return res.status(500).send({ message: err.mesesage })
+        }
+    }
     //list categories
 exports.listCategories = async(req, res) => {
-    try {
-        const categories = await ProductModel.find().select('category').select('-_id').distinct('category');
-        res.send(categories)
-    } catch (err) {
-        return res.status(500).send({ message: err.mesesage })
+        try {
+            const categories = await ProductModel.find().select('category').select('-_id').distinct('category');
+            res.send(categories)
+        } catch (err) {
+            return res.status(500).send({ message: err.mesesage })
+        }
     }
-}
+    //Get price Range
 exports.getPriceRange = async(req, res) => {
         try {
             const minPrice = await ProductModel.find()
@@ -284,6 +293,63 @@ exports.removeDiscount = async(req, res) => {
 
             res.status(200).send({ successMessage: `Discount removed successfully from the ${category} category` })
         }
+    } catch (err) {
+        res.status(500).send({ errorMessage: err.mesesage })
+    }
+}
+
+exports.addToWishlist = async(req, res) => {
+    try {
+        productId = req.body.productId;
+        if (!productId) return res.status(500).send("No product chosen ");
+        userId = req.user._id;
+        const user = await UserModel.findById(userId);
+        const product = await ProductModel.findById(productId);
+        if (product) {
+            const wished = user.wishlist.indexOf(productId);
+            if (wished == -1) {
+                user.wishlist.push(productId);
+                user.save();
+                res.send("Product added to wishlist");
+            } else {
+                res.status(500).send("Product already in wishlist");
+            }
+        } else {
+            res.status(500).send("Product doesn't exist ");
+        }
+    } catch (err) {
+        res.status(500).send({ errorMessage: err.mesesage })
+    }
+}
+exports.removeOfWishlist = async(req, res) => {
+    try {
+        productId = req.body.productId;
+        if (!productId) return res.status(500).send("No product chosen ");
+        userId = req.user._id;
+        const user = await UserModel.findById(userId);
+        const product = await ProductModel.findById(productId);
+        if (product) {
+            const wished = user.wishlist.indexOf(productId);
+            if (wished == -1) {
+                res.status(500).send("Product not in wishlist");
+            } else {
+                user.wishlist.splice(wished, 1);
+                user.save();
+                res.send("Product remmoved froms wishlist");
+            }
+        } else {
+            res.status(500).send("Product doesn't exist ");
+        }
+    } catch (err) {
+        res.status(500).send({ errorMessage: err.mesesage })
+    }
+}
+exports.showWishlist = async(req, res) => {
+    try {
+        userId = req.user._id;
+        const user = await UserModel.findById(userId).populate('wishlist');
+        res.send(user.wishlist)
+
     } catch (err) {
         res.status(500).send({ errorMessage: err.mesesage })
     }

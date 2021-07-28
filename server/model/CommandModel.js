@@ -11,18 +11,31 @@ var commandSchema = new mongoose.Schema({
     total_price: Number,
     status: String,
     delivery_adress: String,
+    phone_number: {
+        type: Number,
+        length: 8
+    },
     createdAt: {
         type: Date,
         default: Date.now
+    },
+    discount_code: String,
+    final_price: {
+        type: Number,
+        default: 0
     }
 })
 var product;
-commandSchema.pre('save', function() {
-
-    this.total_price = this.products.reduce((a, b) => {
-        product = ProductModel.findById(b.productId);
-        return a + (b.quantity * product.unit_price)
-    }, 0)
+commandSchema.pre('save', async function() {
+    try {
+        total = await this.products.reduce(async(a, b) => {
+            product = await ProductModel.findById(b.productId);
+            return a + (b.quantity * product.unit_price);
+        }, 0);
+        this.total_price = total;
+    } catch (err) {
+        console.log(err);
+    }
 });
 const CommandModel = mongoose.model('CommandModel', commandSchema);
 module.exports = CommandModel;

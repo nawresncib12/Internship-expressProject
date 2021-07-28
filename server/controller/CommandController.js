@@ -1,7 +1,8 @@
 const { ProductModel } = require('../model/ProductModel');
 const { UserModel } = require('../model/UserModel');
 const CommandModel = require('../model/CommandModel');
-exports.addProduct = async (req, res) => {
+const PromoController = require('../controller/PromoController');
+exports.addProduct = async(req, res) => {
     if (!req.body.productId) {
         res.status(400).send({ message: "product can not be emtpy!" });
         return;
@@ -22,30 +23,27 @@ exports.addProduct = async (req, res) => {
                     })
                 }
                 command.save();
-                const updated = await CommandModel.updateOne({ userId: req.body.userId, status: "Loading", "products.productId": req.body.productId },
-                    { $inc: { "products.$.quantity": 1 } }, {
+                const updated = await CommandModel.updateOne({ userId: req.body.userId, status: "Loading", "products.productId": req.body.productId }, { $inc: { "products.$.quantity": 1 } }, {
                     returnOriginal: false
                 });
                 command = await CommandModel.findOne({ userId: req.body.userId, status: "Loading" });
                 if (!(updated.nModified)) {
                     command.products.push({ productId, quantity });
-                    command.save();
                 }
-
+                command.save();
+                // not giving the updated command but updating it in db
                 res.status(200).send({ command })
             } else {
                 res.status(500).send({ message: "Error finding product" })
             }
-        }
-        else {
+        } else {
             res.status(500).send({ message: "Error finding user" })
         }
-    }
-    catch (err) {
+    } catch (err) {
         res.status(500).send(err.message)
     }
 }
-exports.removeProduct = async (req, res) => {
+exports.removeProduct = async(req, res) => {
     if (!req.body.productId) {
         res.status(400).send({ message: "user and product can not be emtpy!" });
         return;
@@ -62,12 +60,10 @@ exports.removeProduct = async (req, res) => {
                     res.status(500).send({ message: "Error finding command" })
                 }
                 //check if product already exits in product
-                const updated = await CommandModel.updateOne({ userId: req.body.userId, status: "Loading", "products.productId": req.body.productId },
-                    { $inc: { "products.$.quantity": -1 } }, {
+                const updated = await CommandModel.updateOne({ userId: req.body.userId, status: "Loading", "products.productId": req.body.productId }, { $inc: { "products.$.quantity": -1 } }, {
                     returnOriginal: false
                 });
-                const deleted = await CommandModel.updateOne({ userId: req.body.userId, status: "Loading" },
-                    { $pull: { products: { quantity: 0 } } })
+                const deleted = await CommandModel.updateOne({ userId: req.body.userId, status: "Loading" }, { $pull: { products: { quantity: 0 } } })
                 command = await CommandModel.findOne({ userId: req.body.userId, status: "Loading" });
                 if (deleted.nModified) {
                     if (command.products.length == 0) {
@@ -79,16 +75,14 @@ exports.removeProduct = async (req, res) => {
             } else {
                 res.status(500).send({ message: "Error finding product" })
             }
-        }
-        else {
+        } else {
             res.status(500).send({ message: "Error finding user" })
         }
-    }
-    catch (err) {
+    } catch (err) {
         res.status(500).send(err.message)
     }
 }
-exports.emptyCart = async (req, res) => {
+exports.emptyCart = async(req, res) => {
     const userId = req.user._id;
     try {
         const user = await UserModel.findById(userId);
@@ -101,16 +95,14 @@ exports.emptyCart = async (req, res) => {
             await CommandModel.deleteOne({ userId: req.body.userId, status: "Loading" });
             return res.send({ message: "Your cart is empty" })
 
-        }
-        else {
+        } else {
             res.status(500).send({ message: "Error finding user" })
         }
-    }
-    catch (err) {
+    } catch (err) {
         res.status(500).send(err.message)
     }
 }
-exports.getCart = async (req, res) => {
+exports.getCart = async(req, res) => {
     const userId = req.user._id;
     try {
         const user = await UserModel.findById(userId);
@@ -122,17 +114,50 @@ exports.getCart = async (req, res) => {
                 return res.send(command)
             }
 
-        }
-        else {
+        } else {
             res.status(500).send({ message: "Error finding user" })
         }
-    }
-    catch (err) {
+    } catch (err) {
         res.status(500).send(err.message)
     }
 }
-exports.submitCommand = async (req, res) => {
+
+async function commandPromoCode(command, promoCode) {
+    try {
+        promo = await PromoController.isAvailable(command, promoCode);
+        if (promo) {
+            console.log("hiii")
+            if (Array.isArray(promo)) {
+                console.log("hii")
+                command.final_price = command.total_price;
+                commandProducts = promo.products;
+                await commandProducts.forEach(async commandProduct => {
+                    product = await ProductModel.findById(commandProduct.productId);
+                    command.final_price = command.final_price - (product.unit_price * commandProduct.quantity) + ((product.unit_price * ((100 - promoProducts.promoCode.value) / 100)) * commandProduct.quantity);
+                });
+            } else {
+                command.final_price = command.total_price * ((100 - promo.value) / 100);
+            }
+            return command;
+        } else {
+            return false;
+        }
+    } catch (err) {
+        console.log(err.message)
+        return false;
+    }
+}
+exports.submitCommand = async(req, res) => {
     const userId = req.user._id;
+    const phoneNumber = req.body.phoneNumber;
+    const deliveryAdress = req.body.deliveryAdress;
+    var promoCode = false;
+    if (req.body.promoCode) {
+        promoCode = req.body.promoCode;
+    }
+    if (!req.body.phoneNumber || !req.body.deliveryAdress) {
+        return res.send({ errorMessage: "Please fill in address and phone number" })
+    }
     try {
         const user = await UserModel.findById(userId);
         if (user) {
@@ -140,42 +165,46 @@ exports.submitCommand = async (req, res) => {
             if (!command) {
                 return res.status(500).send({ message: "Cart is empty" })
             } else {
-                const updated = await CommandModel.updateOne({ userId: req.body.userId, status: "Loading" },
-                    { status: "Submitted" }, { returnOriginal: false });
+                if (promoCode) {
+                    available = await commandPromoCode(command, promoCode);
+                    if (available) {
+                        available.save();
+                    } else {
+                        return res.send("This code in not available")
+                    }
+                }
+                const updated = await CommandModel.updateOne({ userId: req.body.userId, status: "Loading" }, { status: "Submitted" }, { returnOriginal: false });
+
                 return res.send("Command submitted successfully")
             }
 
-        }
-        else {
+        } else {
             res.status(500).send({ message: "Error finding user" })
         }
-    }
-    catch (err) {
+    } catch (err) {
         res.status(500).send(err.message)
     }
 }
-exports.getCommands = async (req, res) => {
+exports.getCommands = async(req, res) => {
     const userId = req.user._id;
     try {
         const user = await UserModel.findById(userId);
         if (user) {
             var commands = await CommandModel.find({ userId: req.body.userId, status: { $ne: "Loading" } });
-            if (commands.length==0) {
+            if (commands.length == 0) {
                 return res.status(500).send({ message: "No commands to show" })
             } else {
                 return res.send(commands)
             }
 
-        }
-        else {
+        } else {
             res.status(500).send({ message: "Error finding user" })
         }
-    }
-    catch (err) {
+    } catch (err) {
         res.status(500).send(err.message)
     }
 }
-exports.confirmCommand = async (req, res) => {
+exports.confirmCommand = async(req, res) => {
     if (!req.body.commandId) {
         res.status(400).send({ message: "user and product can not be emtpy!" });
         return;
@@ -186,27 +215,24 @@ exports.confirmCommand = async (req, res) => {
         if (!command) {
             return res.status(500).send({ message: "Command not found" })
         } else {
-            const updated = await CommandModel.updateOne({ _id: req.body.commandId },
-                { status: "Confirmed" }, { returnOriginal: false });
+            const updated = await CommandModel.updateOne({ _id: req.body.commandId }, { status: "Confirmed" }, { returnOriginal: false });
             return res.send("Command is now confirmed")
         }
-    }
-    catch (err) {
+    } catch (err) {
         res.status(500).send(err.message)
     }
 }
-exports.getAllCommands = async (req, res) => {
+exports.getAllCommands = async(req, res) => {
     try {
-            var commands = await CommandModel.find({status: { $ne: "Loading" } });
-            if (commands.length==0) {
-                return res.status(500).send({ message: "No commands to show" })
-            } else {
-                return res.send(commands)
-            }
+        var commands = await CommandModel.find({ status: { $ne: "Loading" } });
+        if (commands.length == 0) {
+            return res.status(500).send({ message: "No commands to show" })
+        } else {
+            return res.send(commands)
+        }
 
-        
-    }
-    catch (err) {
+
+    } catch (err) {
         res.status(500).send(err.message)
     }
 }

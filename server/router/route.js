@@ -5,6 +5,7 @@ const admin = require('../middleware/admin');
 const UserController = require('../controller/UserController');
 const ProductController = require('../controller/ProductController');
 const CommandController = require('../controller/CommandController');
+const PromoController = require('../controller/PromoController');
 //Add User
 route.post('/api/subscribe', UserController.addUser);
 //Find user
@@ -24,6 +25,9 @@ route.delete('/api/deleteProduct/:productId', [auth, admin], ProductController.d
 
 //listProducts
 route.post('/api/products', auth, ProductController.listProducts);
+
+//listProducts
+route.post('/api/latest', auth, ProductController.latest);
 
 //listCategories
 route.post('/api/listCategories', auth, ProductController.listCategories);
@@ -63,4 +67,22 @@ route.post('/api/addDiscount', [auth, admin], ProductController.addDiscount);
 
 //remove Discount 
 route.post('/api/addDiscount', [auth, admin], ProductController.removeDiscount);
+
+//Wishlist 
+
+//Add :
+route.post('/api/addToWishlist', auth, ProductController.addToWishlist);
+
+//Remove
+route.post('/api/removeOfWishlist', auth, ProductController.removeOfWishlist);
+
+//show Wishlist
+route.post('/api/showWishlist', auth, ProductController.showWishlist);
+
+//add Promocode
+route.post('/api/addPromoCode', [auth, admin], PromoController.addCode);
+
+//remove Promocode
+route.post('/api/removePromoCode', [auth, admin], PromoController.removeCode);
+
 module.exports = route
