@@ -1,14 +1,16 @@
 const express = require('express');
 const dotenv = require('dotenv');
-const helmet=require('helmet');
+const helmet = require('helmet');
 const path = require('path');
 const connectDB = require('./server/database/connection');
-const app = express();
+const cookieParser = require("cookie-parser");
 
+const app = express();
+app.use(cookieParser());
 dotenv.config({ path: 'config.env' })
-if(!process.env.ETJWTPRIVATEKEY){
-  console.error('FATAL ERROR : jwtPrivateKey is not defined.')
-  process.exit(1);
+if (!process.env.ETJWTPRIVATEKEY) {
+    console.error('FATAL ERROR : jwtPrivateKey is not defined.')
+    process.exit(1);
 }
 app.use(helmet());
 
@@ -22,7 +24,7 @@ app.get('/', (req, res) => {
 
 app.use(express.json());
 app.use(express.urlencoded({
-  extended: true
+    extended: true
 }));
 
 

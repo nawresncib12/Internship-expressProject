@@ -1,34 +1,37 @@
 {
-  "name": "express-project",
-  "version": "1.0.0",
-  "description": "Sinple express project",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon index.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/nawresncib12/Internship-expressProject.git"
-  },
-  "keywords": [
-    "express",
-    "mongodb"
-  ],
-  "author": "Nawres Ncib",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/nawresncib12/Internship-expressProject/issues"
-  },
-  "homepage": "https://github.com/nawresncib12/Internship-expressProject#readme",
-  "dependencies": {
-    "bcrypt": "^5.0.1",
-    "config": "^3.3.6",
-    "dotenv": "^10.0.0",
-    "express": "^4.17.1",
-    "helmet": "^4.6.0",
-    "jsonwebtoken": "^8.5.1",
-    "lodash": "^4.17.21",
-    "mongoose": "^5.13.0"
-  }
+    "name": "express-project",
+    "version": "1.0.0",
+    "description": "Sinple express project",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "nodemon index.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/nawresncib12/Internship-expressProject.git"
+    },
+    "keywords": [
+        "express",
+        "mongodb"
+    ],
+    "author": "Nawres Ncib",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/nawresncib12/Internship-expressProject/issues"
+    },
+    "homepage": "https://github.com/nawresncib12/Internship-expressProject#readme",
+    "dependencies": {
+        "bcrypt": "^5.0.1",
+        "config": "^3.3.6",
+        "cookie-parser": "^1.4.5",
+        "dotenv": "^10.0.0",
+        "express": "^4.17.1",
+        "helmet": "^4.6.0",
+        "jsonwebtoken": "^8.5.1",
+        "lodash": "^4.17.21",
+        "mongoose": "^5.13.0",
+        "nodemailer": "^6.6.3",
+        "nodemailer-smtp-transport": "^2.7.4"
+    }
 }

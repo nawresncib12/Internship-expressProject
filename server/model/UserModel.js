@@ -15,7 +15,8 @@ var userSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     },
-    wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ProductModel' }]
+    wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ProductModel' }],
+    authCode: String
 })
 userSchema.methods.generetaAuthToken = function() {
     const token = jwt.sign({ _id: this._id, role: this.role }, process.env.ETJWTPRIVATEKEY);

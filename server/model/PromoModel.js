@@ -17,3 +17,4 @@ var promoSchema = new mongoose.Schema({
 
 const PromoModel = mongoose.model('PromoModel', promoSchema);
 module.exports = PromoModel;
+// Still haven t implemented the maxValue and limit

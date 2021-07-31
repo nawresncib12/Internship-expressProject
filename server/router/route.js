@@ -2,14 +2,23 @@ const express = require('express');
 const route = express.Router()
 const auth = require('../middleware/auth');
 const admin = require('../middleware/admin');
+const access = require('../middleware/access');
 const UserController = require('../controller/UserController');
 const ProductController = require('../controller/ProductController');
 const CommandController = require('../controller/CommandController');
 const PromoController = require('../controller/PromoController');
-//Add User
-route.post('/api/subscribe', UserController.addUser);
-//Find user
-route.post('/api/login', UserController.findUser);
+//subscribe User
+route.post('/api/subscribe', UserController.subscribe);
+
+//login user
+route.post('/api/login', UserController.login);
+
+//verify login
+route.post('/api/verify', access, UserController.verifyLogin);
+
+// logout
+route.post('/api/logout', UserController.logout);
+
 
 //Current user
 route.get('/api/me', auth, UserController.currentUser);
